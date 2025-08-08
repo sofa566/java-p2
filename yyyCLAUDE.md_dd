@@ -1,0 +1,124 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+## Project Overview
+
+This is a B2B Management System with separate backend and frontend applications:
+
+- **Backend**: Spring Boot 3.2.0 application with Java 17, providing REST APIs for user management, store management, billing accounts, invoices, and payments
+- **Frontend**: React + TypeScript + Vite application providing the user interface
+- **Database**: MySQL with comprehensive schema for multi-tenant B2B operations
+
+## Development Commands
+
+### Backend (Maven + Spring Boot)
+- **Build**: `cd backend && mvn clean compile`
+- **Run**: `cd backend && mvn spring-boot:run`
+- **Test**: `cd backend && mvn test`
+- **Package**: `cd backend && mvn clean package`
+
+### Frontend (Node.js + Vite)
+- **Install deps**: `cd frontend && npm install`
+- **Dev server**: `cd frontend && npm run dev`
+- **Build**: `cd frontend && npm run build`
+- **Lint**: `cd frontend && npm run lint`
+- **Preview**: `cd frontend && npm run preview`
+
+### Database Setup
+- MySQL database `b2b_management` will be auto-created on first run
+- Schema is in `backend/src/main/resources/schema.sql`
+- Application uses Hibernate DDL auto-update mode
+
+## Architecture & Key Components
+
+### Backend Architecture (Spring Boot)
+- **Controller Layer**: REST endpoints in `com.b2b.controller.*`
+  - AuthController: Authentication and JWT token management
+  - BillingController: Billing account operations
+  - StoreController: Store management
+  - UserController: User management operations
+
+- **Service Layer**: Business logic in `com.b2b.service.*`
+  - Transactional operations for billing, invoices, payments
+  - User authentication and authorization logic
+  - Store-user relationship management
+
+- **Repository Layer**: JPA repositories in `com.b2b.repository.*`
+  - Spring Data JPA for database operations
+  - Custom query methods for complex business operations
+
+- **Security**: JWT-based authentication with Spring Security
+  - JwtAuthenticationFilter for request filtering
+  - Role-based access control (ADMIN, STORE_MANAGER, USER)
+
+### Entity Relationships
+- **User** ↔ **Store**: Many-to-many via StoreUser (with roles)
+- **Store** → **BillingAccount**: One-to-many
+- **BillingAccount** → **Invoice**: One-to-many  
+- **Invoice** → **InvoiceItem**: One-to-many
+- **Invoice** → **Payment**: One-to-many
+
+### Key Business Logic
+- **Multi-tenant**: Stores act as tenants with associated users
+- **Financial Operations**: Balance tracking, credit limits, invoice generation
+- **Role-based Access**: Store managers can manage their stores, admins manage system
+
+### Frontend Architecture (React + TypeScript)
+- **Vite**: Build tool and dev server
+- **TypeScript**: Type safety with strict configuration
+- **ESLint**: Code quality and formatting
+
+## Configuration Notes
+
+### Database Connection
+- Default: MySQL on localhost:3306
+- Database: `b2b_management` (auto-created)
+- Credentials configured in `application.yml`
+
+### Security Configuration
+- JWT token expiration: 24 hours
+- CORS configured for cross-origin requests
+- Role-based endpoint protection
+
+### Application Ports
+- Backend: 8080 (Spring Boot)
+- Frontend dev server: Vite default (usually 5173)
+
+## Development Workflows
+
+### Adding New Features
+1. Create entity in `com.b2b.entity` if needed
+2. Add repository interface in `com.b2b.repository`
+3. Implement service logic in `com.b2b.service`
+4. Create DTOs for requests/responses in `com.b2b.dto`
+5. Add controller endpoints in `com.b2b.controller`
+6. Update database schema if needed
+
+### Testing Strategy
+- Unit tests for service layer business logic
+- Integration tests for repository operations
+- Security tests for authentication/authorization
+- Currently no tests exist - this should be addressed
+
+### Database Changes
+- Use Hibernate DDL auto-update for development
+- Production deployments should use schema migration scripts
+- All entities use standard JPA annotations
+
+## Important Considerations
+
+### Security Notes
+- JWT secrets should be externalized in production
+- Database credentials should use environment variables
+- Role permissions are enforced at the service layer
+
+### Performance Considerations  
+- Lazy loading configured for entity relationships
+- Database indexes defined in schema.sql
+- Pagination implemented for list operations
+
+### Financial Data Handling
+- All monetary values use DECIMAL(15,2) precision
+- Balance operations should be atomic and thread-safe
+- Invoice calculations include tax handling
