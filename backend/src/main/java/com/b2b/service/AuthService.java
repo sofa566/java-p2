@@ -21,14 +21,17 @@ public class AuthService {
     private final AuthenticationManager authenticationManager;
     private final UserService userService;
     private final JwtUtils jwtUtils;
+    private final EmailService emailService;
 
     @Autowired
     public AuthService(AuthenticationManager authenticationManager, 
                       UserService userService, 
-                      JwtUtils jwtUtils) {
+                      JwtUtils jwtUtils,
+                      EmailService emailService) {
         this.authenticationManager = authenticationManager;
         this.userService = userService;
         this.jwtUtils = jwtUtils;
+        this.emailService = emailService;
     }
 
     public AuthResponse authenticateUser(LoginRequest loginRequest) {
@@ -49,7 +52,20 @@ public class AuthService {
     }
 
     public UserResponse registerUser(UserRegistrationRequest registrationRequest) {
-        return userService.createUser(registrationRequest);
+        UserResponse userResponse = userService.createUser(registrationRequest);
+        
+        // 發送歡迎郵件
+        try {
+            emailService.sendWelcomeEmail(
+                userResponse.getEmail(), 
+                userResponse.getFirstName() + " " + userResponse.getLastName()
+            );
+        } catch (Exception e) {
+            // 記錄錯誤但不影響註冊流程
+            System.err.println("發送歡迎郵件失敗: " + e.getMessage());
+        }
+        
+        return userResponse;
     }
 
     @Transactional(readOnly = true)

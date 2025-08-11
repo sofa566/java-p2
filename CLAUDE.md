@@ -45,8 +45,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
   - 店舖-使用者關係管理
 
 - **儲存庫層**: JPA 儲存庫位於 `com.b2b.repository.*`
-  - Spring Data JPA 進行資料庫操作
-  - 複雜業務操作的自訂查詢方法
+  - pring Data JPA 進行資料庫操作
+  - S複雜業務操作的自訂查詢方法
 
 - **安全性**: 基於 JWT 的身份驗證和 Spring Security
   - JwtAuthenticationFilter 用於請求過濾
